@@ -1,0 +1,47 @@
+#!/bin/bash
+
+cd ${0%/*}
+
+pid=
+running=true
+
+stop() {
+    [ -n "$pid" -a -d /proc/$pid ] && {
+        kill $pid
+        sleep 2
+    }
+    pid=
+}
+
+start() {
+    /usr/local/bin/gunicorn --config gunicorn-conf.py run:app &
+    pid=$!
+}
+
+check() {
+    [ -n "$pid" -a -d /proc/$pid ] || {
+        stop
+        start
+    }
+}
+
+terminate() {
+    running=false
+}
+
+reload() {
+    stop
+    start
+}
+
+trap terminate SIGTERM SIGINT
+trap reload SIGHUP
+
+start
+
+while $running; do
+    check
+    read -t 60 </dev/ptmx
+done
+
+stop

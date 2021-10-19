@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Fujitsu-MlServer
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /model/update:
+    post:
+      summary: Signal to Update Machine Learning Model
+      requestBody:
+        $ref: '#/components/requestBodies/updateModel'
+      responses:
+        '200':
+          description: 'Model Successfully Loaded'
+  /prediction:
+      post:
+        summary: Make /prediction
+        requestBody:
+            $ref: '#/components/requestBodies/prediction'
+        responses:
+          '200':
+            description: 'Prediction Result'    
+components:
+  schemas:
+    updateModel:
+      type: object
+      properties:
+          clusterId:
+              type: string
+    prediction:
+        type: object
+        properties:
+            clusterId:
+                type: string
+            appId:
+                type: integer        
+
+  securitySchemes:
+    bearerAuth:
+        type: http
+        scheme: bearer
+  requestBodies:
+    updateModel:
+        description: JSON Format with model information
+        content:
+           application/json:
+               schema:
+                   $ref: '#/components/schemas/updateModel' 
+    prediction:
+        description: JSON Format with prediction input parameter
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/prediction'
+      
+security:
+    - bearerAuth: []

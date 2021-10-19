@@ -1,0 +1,7 @@
+{
+    "cluster":"cluster1",
+    "modelPath":"/media/juniarto/TOSHIBAEXT/WORK/FUJITSU/predictor/flask-dashboard-adminlte/model/model.dat",
+    "metadataPath":"/media/juniarto/TOSHIBAEXT/WORK/FUJITSU/predictor/flask-dashboard-adminlte/model/model.json",
+    "modelSerializationType":"pickle",
+    "mlModelType":"xgboost"
+}
