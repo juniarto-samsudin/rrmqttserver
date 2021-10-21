@@ -1,5 +1,5 @@
 from mqttRest import MQTT_REST_API
-
+import time
 
 #SEND ALL SENSORS DATA USING THE FOLLOWING FORMAT
 MSG= [
@@ -376,7 +376,11 @@ MSG= [
 ]
 
 #SENDING THE DATA
-myApi = MQTT_REST_API() 
-myApi.send(MSG)
+myApi = MQTT_REST_API()
+for x in range(100): 
+   myApi.send(MSG)
+   time.sleep(1)
+
+   
 
 

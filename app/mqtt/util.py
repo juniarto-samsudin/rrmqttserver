@@ -2,7 +2,7 @@ from flask import current_app
 
 from azure.iot.device import IoTHubDeviceClient, Message
 import json
-
+import encodings
 
 
 class AZ_MQTT:
@@ -16,6 +16,8 @@ class AZ_MQTT:
         msgString = json.dumps(msgList)
         msg = Message(msgString)
         print("Sending message: {}".format(msg))
+        msg.content_encoding="utf-8"
+        msg.content_type = "application/json"
         self.client.send_message(msg)
         #self.client.disconnect()
         self.client.shutdown()
