@@ -1,0 +1,368 @@
+# This is test code for Azure webservice application
+# Developed by : Farzam Farbiz
+# Date: 02/11/2021
+# Input: 250 features (S1F1, ... , S5F50)
+# Models: S1ML1 ,S1ML2 ,S1ML3 , S12345ML1, S12345ML2, S12345ML3
+#Outputs:
+
+"""
+{
+  "Results": {
+    "S2ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.9999887608064494,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 0.000014633963827903907,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.999992318373924
+      }
+    ],
+    "S3ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.999994570994735,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 0.000004668415301487929,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.9999925211056632
+      }
+    ],
+    "S1ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.9999829150382469,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 0.000003853193387506169,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.999975201795195
+      }
+    ],
+    "S12345ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.9999816412253246,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 0.000002435848493998989,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.9999980470834224
+      }
+    ],
+    "S4ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.9999596886130608,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 6.378572207251631e-7,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.9999885672471501
+      }
+    ],
+    "S5ModelsOutput": [
+      {
+        "ML1 Anomaly Scored Labels": 1,
+        "ML1 Anomaly Scored Probabilities": 0.999999549877879,
+        "ML2 Bearing Fault Scored Labels": 0,
+        "ML2 Bearing Fault Scored Probabilities": 0.000011587969101706328,
+        "ML3 Gearbox Fault Scored Labels": 1,
+        "ML3 Gearbox Fault Scored Probabilities": 0.9999975720311738
+      }
+    ]
+  }
+}
+"""
+
+import urllib.request
+import json
+import os
+import ssl
+
+def allowSelfSignedHttps(allowed):
+    # bypass the server certificate verification on client side
+    if allowed and not os.environ.get('PYTHONHTTPSVERIFY', '') and getattr(ssl, '_create_unverified_context', None):
+        ssl._create_default_https_context = ssl._create_unverified_context
+
+allowSelfSignedHttps(True) # this line is needed if you use self-signed certificate in your scoring service.
+
+# Request data goes here
+data = {
+    "Inputs": {
+        "WebServiceInput0":
+        [
+            {
+                'S1F1': "5.11e-9",
+                'S1F2': "512489",
+                'S1F3': "4.87e-9",
+                'S1F4': "0.013428637",
+                'S1F5': "2.71e-8",
+                'S1F6': "9.99e-10",
+                'S1F7': "2.45e-8",
+                'S1F8': "3.79e-7",
+                'S1F9': "8.36e-10",
+                'S1F10': "1.22e-9",
+                'S1F11': "1.47e-9",
+                'S1F12': "3.47e-8",
+                'S1F13': "2.57e-7",
+                'S1F14': "1.47e-8",
+                'S1F15': "4.21e-8",
+                'S1F16': "0.0000708",
+                'S1F17': "1.58e-7",
+                'S1F18': "9.25e-8",
+                'S1F19': "1.43e-7",
+                'S1F20': "1.79e-8",
+                'S1F21': "3.44e-7",
+                'S1F22': "2.09e-9",
+                'S1F23': "2.92e-7",
+                'S1F24': "1.45e-9",
+                'S1F25': "0.000171074",
+                'S1F26': "1.37e-8",
+                'S1F27': "1.23e-9",
+                'S1F28': "3.24e-8",
+                'S1F29': "1.73e-9",
+                'S1F30': "0.0000135",
+                'S1F31': "0.000176341",
+                'S1F32': "5.3e-9",
+                'S1F33': "1.77e-9",
+                'S1F34': "0.00000861",
+                'S1F35': "8.79e-9",
+                'S1F36': "2.17e-9",
+                'S1F37': "4.41e-9",
+                'S1F38': "1.48e-9",
+                'S1F39': "1.22e-9",
+                'S1F40': "3.97e-8",
+                'S1F41': "1.38e-9",
+                'S1F42': "1.91e-8",
+                'S1F43': "7.56e-10",
+                'S1F44': "1.27e-9",
+                'S1F45': "6.05e-8",
+                'S1F46': "1.5e-9",
+                'S1F47': "3.67e-9",
+                'S1F48': "1.03e-8",
+                'S1F49': "-0.005456204",
+                'S1F50': "5.26e-9",
+                'S2F1': "1.43e-8",
+                'S2F2': "1.89e-10",
+                'S2F3': "1.5e-9",
+                'S2F4': "3.69e-10",
+                'S2F5': "6.64e-8",
+                'S2F6': "8.45e-10",
+                'S2F7': "1.43e-9",
+                'S2F8': "5.55e-8",
+                'S2F9': "6.52e-9",
+                'S2F10': "6e-10",
+                'S2F11': "9.68e-10",
+                'S2F12': "2.98e-10",
+                'S2F13': "9.31e-10",
+                'S2F14': "4.25e-10",
+                'S2F15': "2.93e-10",
+                'S2F16': "2.63e-10",
+                'S2F17': "8.41e-10",
+                'S2F18': "9.82e-11",
+                'S2F19': "1.94e-10",
+                'S2F20': "7.73e-9",
+                'S2F21': "2.15e-8",
+                'S2F22': "2.7e-9",
+                'S2F23': "0.003656145",
+                'S2F24': "4.93e-10",
+                'S2F25': "2.04e-10",
+                'S2F26': "1.38e-9",
+                'S2F27': "3.08e-10",
+                'S2F28': "5.02e-9",
+                'S2F29': "1.27e-8",
+                'S2F30': "4.31e-10",
+                'S2F31': "5.49e-10",
+                'S2F32': "6.27e-11",
+                'S2F33': "9.64e-8",
+                'S2F34': "1.36e-9",
+                'S2F35': "2.46e-10",
+                'S2F36': "1.12e-9",
+                'S2F37': "3.71e-10",
+                'S2F38': "3.69e-8",
+                'S2F39': "2.42e-10",
+                'S2F40': "1.52e-10",
+                'S2F41': "1.25e-9",
+                'S2F42': "1.45e-10",
+                'S2F43': "5.36e-10",
+                'S2F44': "1.07e-8",
+                'S2F45': "4.82e-9",
+                'S2F46': "1.69e-9",
+                'S2F47': "2.19e-9",
+                'S2F48': "1.51e-7",
+                'S2F49': "6.68e-10",
+                'S2F50': "1.5e-10",
+                'S3F1': "5.34e-7",
+                'S3F2': "1.74e-10",
+                'S3F3': "2.49e-9",
+                'S3F4': "2.01e-10",
+                'S3F5': "2.6e-9",
+                'S3F6': "1.23e-9",
+                'S3F7': "3.73e-9",
+                'S3F8': "4.03e-10",
+                'S3F9': "2.46e-9",
+                'S3F10': "5.13e-9",
+                'S3F11': "1.8e-9",
+                'S3F12': "4.72e-10",
+                'S3F13': "1.49e-10",
+                'S3F14': "1.64e-9",
+                'S3F15': "9.3e-10",
+                'S3F16': "1.65e-10",
+                'S3F17': "3.24e-10",
+                'S3F18': "1.5e-10",
+                'S3F19': "4.21e-9",
+                'S3F20': "-0.187624376",
+                'S3F21': "1.52e-9",
+                'S3F22': "3.3e-10",
+                'S3F23': "1.71e-10",
+                'S3F24': "2.12e-10",
+                'S3F25': "0.004849378",
+                'S3F26': "6.53e-9",
+                'S3F27': "1.31e-10",
+                'S3F28': "5.84e-10",
+                'S3F29': "1.87e-10",
+                'S3F30': "7.36e-9",
+                'S3F31': "4.53e-8",
+                'S3F32': "3.21e-10",
+                'S3F33': "6.89e-10",
+                'S3F34': "1.55e-10",
+                'S3F35': "1.89e-10",
+                'S3F36': "1.37e-7",
+                'S3F37': "3.95e-10",
+                'S3F38': "5.37e-10",
+                'S3F39': "2.44e-10",
+                'S3F40': "4.09e-10",
+                'S3F41': "2.31e-9",
+                'S3F42': "6.07e-10",
+                'S3F43': "2.95e-10",
+                'S3F44': "1.16e-9",
+                'S3F45': "1.15e-8",
+                'S3F46': "2.39e-10",
+                'S3F47': "4.2e-10",
+                'S3F48': "1.27e-9",
+                'S3F49': "3.56e-9",
+                'S3F50': "3.48e-9",
+                'S4F1': "7.37e-7",
+                'S4F2': "2.24e-8",
+                'S4F3': "2.45e-8",
+                'S4F4': "3.83e-11",
+                'S4F5': "0.00000342",
+                'S4F6': "9.11e-7",
+                'S4F7': "0.009739937",
+                'S4F8': "1.44e-8",
+                'S4F9': "7.91e-7",
+                'S4F10': "0.00000147",
+                'S4F11': "1.47e-8",
+                'S4F12': "0.00000282",
+                'S4F13': "1.01e-11",
+                'S4F14': "6.11e-14",
+                'S4F15': "0.00000387",
+                'S4F16': "0.00000139",
+                'S4F17': "2.39e-7",
+                'S4F18': "6.81e-8",
+                'S4F19': "0.0000429",
+                'S4F20': "1.04e-7",
+                'S4F21': "1.09e-9",
+                'S4F22': "-0.017628108",
+                'S4F23': "7.78e-7",
+                'S4F24': "1.25e-7",
+                'S4F25': "1.53e-13",
+                'S4F26': "0.00000237",
+                'S4F27': "0.00000211",
+                'S4F28': "3.62e-9",
+                'S4F29': "7.71e-10",
+                'S4F30': "8.66e-11",
+                'S4F31': "0.00000233",
+                'S4F32': "1.75e-7",
+                'S4F33': "3.73e-7",
+                'S4F34': "4.33e-10",
+                'S4F35': "3.54e-8",
+                'S4F36': "0.006656953",
+                'S4F37': "7.25e-7",
+                'S4F38': "1.16e-11",
+                'S4F39': "1.07e-9",
+                'S4F40': "0.00000143",
+                'S4F41': "9.48e-8",
+                'S4F42': "2.67e-7",
+                'S4F43': "0.00000118",
+                'S4F44': "0.0000082",
+                'S4F45': "151963",
+                'S4F46': "0.00000683",
+                'S4F47': "0.00000232",
+                'S4F48': "4.45e-14",
+                'S4F49': "0.00000332",
+                'S4F50': "0.00000999",
+                'S5F1': "1.16e-9",
+                'S5F2': "7.24e-9",
+                'S5F3': "3.57e-10",
+                'S5F4': "1.19e-9",
+                'S5F5': "1.44e-9",
+                'S5F6': "9.8e-9",
+                'S5F7': "2.76e-8",
+                'S5F8': "3.73e-9",
+                'S5F9': "0.00000108",
+                'S5F10': "1.45e-10",
+                'S5F11': "5.13e-10",
+                'S5F12': "6.86e-7",
+                'S5F13': "75148",
+                'S5F14': "1e-7",
+                'S5F15': "1.66e-9",
+                'S5F16': "1.77e-9",
+                'S5F17': "1.55e-9",
+                'S5F18': "74234",
+                'S5F19': "2.31e-10",
+                'S5F20': "1.43e-8",
+                'S5F21': "1.68e-10",
+                'S5F22': "9.26e-10",
+                'S5F23': "6.41e-9",
+                'S5F24': "1.48e-9",
+                'S5F25': "3.26e-9",
+                'S5F26': "2.05e-9",
+                'S5F27': "5.96e-8",
+                'S5F28': "4.33e-9",
+                'S5F29': "4.34e-8",
+                'S5F30': "2.28e-9",
+                'S5F31': "2.76e-8",
+                'S5F32': "9.9e-8",
+                'S5F33': "2.84e-9",
+                'S5F34': "7.05e-10",
+                'S5F35': "5.28e-8",
+                'S5F36': "1.33e-9",
+                'S5F37': "1.56e-8",
+                'S5F38': "1.07e-9",
+                'S5F39': "5.61e-10",
+                'S5F40': "1.2e-8",
+                'S5F41': "6.08e-10",
+                'S5F42': "0.00000123",
+                'S5F43': "2.22e-9",
+                'S5F44': "4.73e-7",
+                'S5F45': "3.84e-9",
+                'S5F46': "7.54e-7",
+                'S5F47': "1.24e-9",
+                'S5F48': "9.36e-11",
+                'S5F49': "2.37e-9",
+                'S5F50': "1.21e-8",
+            },
+        ],
+    },
+    "GlobalParameters": {
+    }
+}
+
+body = str.encode(json.dumps(data))
+
+url = 'http://20.43.146.68:80/api/v1/service/s4ml1deployment/score'
+api_key = 'uKAoWY9fpa8aVjgIYPIFMHAUj5XVGWeu' # Replace this with the API key for the web service
+headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ api_key)}
+
+req = urllib.request.Request(url, body, headers)
+
+try:
+    response = urllib.request.urlopen(req)
+
+    result = response.read()
+    print(result)
+except urllib.error.HTTPError as error:
+    print("The request failed with status code: " + str(error.code))
+
+    # Print the headers - they include the requert ID and the timestamp, which are useful for debugging the failure
+    print(error.info())
+    print(json.loads(error.read().decode("utf8", 'ignore')))

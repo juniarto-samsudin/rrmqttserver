@@ -1,4 +1,4 @@
-from mqttRest import MQTT_REST_API
+from mqttRest import MQTT_REST_API, AZML_REST_API
 import time
 
 #SEND ALL SENSORS DATA USING THE FOLLOWING FORMAT
@@ -376,10 +376,17 @@ MSG= [
 ]
 
 #SENDING THE DATA
+'''
 myApi = MQTT_REST_API()
 for x in range(100): 
    myApi.send(MSG)
    time.sleep(1)
+'''
+for x in range(100): 
+   myApi = AZML_REST_API()
+   print(myApi.send(MSG))
+   time.sleep(30)
+
 
    
 
