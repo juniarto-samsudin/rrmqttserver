@@ -9,6 +9,29 @@ import json
 import datetime
 import dateutil.parser
 
+import logging
+from decouple import config
+
+
+featureLogger = logging.getLogger('featureLogger')
+featureLogger.setLevel(logging.INFO)
+
+
+predictionLogger = logging.getLogger('predictionLogger')
+predictionLogger.setLevel(logging.INFO)
+
+
+feature_file_handler = logging.FileHandler(config('FEATURE_LOG_FILE',default='feature_log.log'))
+prediction_file_handler = logging.FileHandler(config('PREDICTION_LOG_FILE',default='prediction_log.log'))
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+feature_file_handler.setFormatter(formatter)
+prediction_file_handler.setFormatter(formatter)
+
+featureLogger.addHandler(feature_file_handler)
+predictionLogger.addHandler(prediction_file_handler)
+
 dummyData = {
     "Inputs": {
         "WebServiceInput0":
@@ -282,6 +305,8 @@ def convertToAzmlSchema(msgList: list):
             [
 
             ]
+        },
+        "GlobalParameters": {
         }
     }
     myDict = {}
@@ -291,9 +316,9 @@ def convertToAzmlSchema(msgList: list):
         for fName, fValue in features.items():
             newFName = sensorName + fName
             myDict[newFName] = fValue
-    print(myDict)
+    print("+++++MYDICT++++++:", myDict)
     azmlSchema['Inputs']['WebServiceInput0'].append(myDict)
-    print('AZMLSCHEMA: ', azmlSchema)
+    #print('AZMLSCHEMA: ', azmlSchema)
     
     return azmlSchema
 
@@ -312,15 +337,16 @@ class AZ_MLWS:
         self.api_key = 'xtS5DQDDQ32BR6zYlpNJ18CmQpi1dreH' # Replace this with the API key for the web service
         self.headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ self.api_key)}
         '''
-        self.RestUrl = 'http://20.43.146.68:80/api/v1/service/s4ml1deployment/score'
+        self.RestUrl = 'http://20.43.146.68:80/api/v1/service/s4ml1deployment/score' 
         self.api_key = 'uKAoWY9fpa8aVjgIYPIFMHAUj5XVGWeu' # Replace this with the API key for the web service
         self.headers = {'Content-Type':'application/json', 'Authorization':('Bearer '+ self.api_key)}
 
     
     def send(self, msgList):
+        print('Sending to Azure ML...')
         mySchema = convertToAzmlSchema(msgList)
-        
-        body = json.dumps(dummyData)
+        print('MYSCHEMA: ', mySchema)
+        body = json.dumps(mySchema)
         try:
             response = requests.post(self.RestUrl, data=body, headers=self.headers)
             response.raise_for_status()
@@ -354,6 +380,19 @@ def getInfluxMsg(myJson):
     MSG_TXT = "{sensorName} prediction={prediction} {timestamp}"   
     MSG_TXT_FORMATTED = MSG_TXT.format(sensorName=sensorName, prediction=prediction, timestamp=timestamp)
     return MSG_TXT_FORMATTED
+
+def getInfluxMsgFzFeatures(myJson):
+    MSG_JSON = []
+    try:
+        for sensor in myJson:
+            sensorName = sensor['sensorName']
+            featureDict = sensor['features']
+            MSG_JSON.append({'measurement': sensorName, 'fields': featureDict})
+    except Exception as e:
+        print('getInfluxMsgFeatures: ', e)
+        raise ValueError('getInfluxMsgFeatures JsonStructureError: {} does not exist'.format(e))   
+    else:
+        return MSG_JSON
 
 def getInfluxMsgFz(myJson) -> str:
     MSG_JSON = []
@@ -418,17 +457,77 @@ class INFLUXSTORAGE:
         else:
             print('written')
 
+    def writeDbFzFeatures(self, myJson):
+        print("INSIDE WRITING FEATURES")
+        featureLogger.info(myJson)
+        try:
+            influxMsg = getInfluxMsgFzFeatures(myJson)
+            print('INFLUX FEATURES MESSAGES: ', influxMsg)
+            self.client.write_points(influxMsg)
+        except Exception as err:
+            print(err)
+            raise ValueError('writeDbFzFeatures: {} error'.format(err))
+        else:
+            return 0
+
     def writeDbFz(self, myJson):
-        print('INSIDE WRITEDBFZ')
-        print(myJson)
+        print('INSIDE WRITEDBFZ: WRITE PREDICTION')
+        '''
+        AZURE ML OUTPUT FORMAT:
+        {'Results': {'S2ModelsOutput': [{'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9934365970893647, 
+                                         'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 7.790251381015847e-05, 
+                                         'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 0.006167442709467959}], 
+                     'S3ModelsOutput': [{'ML1 Anomaly Scored Labels': 0.0, 'ML1 Anomaly Scored Probabilities': 0.003526396544994745, 
+                                         'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 0.09611832145987317, 
+                                         'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 6.396071431781235e-06}], 
+                     'S1ModelsOutput': [{'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999811413264189, 
+                                         'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9345917698981047, 
+                                         'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.9994189598215983}], 
+                     'S12345ModelsOutput': [{'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999298973353226, 
+                                            'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9995586735495678, 
+                                            'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.959437785217065}], 
+                     'S4ModelsOutput': [{'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999983195822132, 
+                                         'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9965093015974997, 
+                                        'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.9998034847355525}], 
+                     'S5ModelsOutput': [{'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9971159222336053, 
+                                         'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 0.00014449799626174535, 
+                                         'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 0.0039150529813327724}]
+                    }
+        }
+        '''
+        predictionLogger.info(myJson)
         influxMsg = getInfluxMsgFz(myJson)
+        '''
+        PREDICITON RESULT FORMAT FOR INFLUXDB:
+        [
+        {'measurement': 'S2ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9934365970893647}},
+        {'measurement': 'S2ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 7.790251381015847e-05}}, 
+        {'measurement': 'S2ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 0.006167442709467959}}, 
+        {'measurement': 'S3ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 0.0, 'ML1 Anomaly Scored Probabilities': 0.003526396544994745}}, 
+        {'measurement': 'S3ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 0.09611832145987317}}, 
+        {'measurement': 'S3ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 6.396071431781235e-06}}, 
+        {'measurement': 'S1ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999811413264189}}, 
+        {'measurement': 'S1ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9345917698981047}}, 
+        {'measurement': 'S1ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.9994189598215983}}, 
+        {'measurement': 'S12345ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999298973353226}}, 
+        {'measurement': 'S12345ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9995586735495678}}, 
+        {'measurement': 'S12345ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.959437785217065}}, 
+        {'measurement': 'S4ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9999983195822132}}, 
+        {'measurement': 'S4ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 1.0, 'ML2 Bearing Fault Scored Probabilities': 0.9965093015974997}}, 
+        {'measurement': 'S4ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 1.0, 'ML3 Gearbox Fault Scored Probabilities': 0.9998034847355525}}, 
+        {'measurement': 'S5ModelsOutput', 'tags': {'Model': 'ML1'}, 'fields': {'ML1 Anomaly Scored Labels': 1.0, 'ML1 Anomaly Scored Probabilities': 0.9971159222336053}}, 
+        {'measurement': 'S5ModelsOutput', 'tags': {'Model': 'ML2'}, 'fields': {'ML2 Bearing Fault Scored Labels': 0.0, 'ML2 Bearing Fault Scored Probabilities': 0.00014449799626174535}}, 
+        {'measurement': 'S5ModelsOutput', 'tags': {'Model': 'ML3'}, 'fields': {'ML3 Gearbox Fault Scored Labels': 0.0, 'ML3 Gearbox Fault Scored Probabilities': 0.0039150529813327724}}
+        ]
+        '''
         print('MSGJSON :', influxMsg)
         try:
             self.client.write_points(influxMsg)
         except Exception as err:
             print(err)
+            raise ValueError('writeDbFz: {} error'.format(err))
         else:
-            print('written')
+            return 0
 
 
 

@@ -1,3 +1,4 @@
+from requests import exceptions
 from app.azml import blueprint
 from flask import current_app, Response, request, jsonify
 import json
@@ -10,15 +11,28 @@ def azml_send():
 
     myList = request_data
     myAzml = AZ_MLWS()
-    responseJson = myAzml.send(myList)
-
-    myInfluxStorage = INFLUXSTORAGE('ml3')
-    myInfluxStorage.writeDbFz(responseJson)
-
-
-    print('ResponseJson: ', responseJson)
-
-    return Response(json.dumps(responseJson),status=200, mimetype='application/json')
+    #WRITE INCOMING FEATURES
+    myInfluxStorage = INFLUXSTORAGE('ml3features')
+    try:
+        myInfluxStorage.writeDbFzFeatures(myList)
+    except Exception as e:
+        print('ERROR: ', e)
+        responseJson = {'status': 'error', 'message': 'Error writing features to InfluxDB'}
+        return Response(json.dumps(responseJson), mimetype='application/json', status=500)
+    else:
+        try:
+            #SEND DATA TO AZURE ML AND GET PREDICTION RESULT
+            responseJson = myAzml.send(myList)
+            #WRITE PREDICTION RESULT TO INFLUXDB
+            myInfluxStorage = INFLUXSTORAGE('ml3')
+            myInfluxStorage.writeDbFz(responseJson)
+        except Exception as e:
+            print('ERROR: ', e)
+            responseJson = {'status': 'error', 'message': 'Error writing prediction result to InfluxDB'}
+            return Response(json.dumps(responseJson), mimetype='application/json', status=500)
+        else:
+            print('ResponseJson: ', responseJson)
+            return Response(json.dumps(responseJson),status=200, mimetype='application/json')
 
 
 

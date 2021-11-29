@@ -18,6 +18,9 @@ class Config(object):
 
     CONNECTION_STRING = config('CONNECTION_STRING')
 
+    FEATURE_LOG_FILE = config('FEATURE_LOG_FILE', default='feature_log.log')
+    PREDICTION_LOG_FILE = config('PREDICTION_LOG_FILE', default='prediction_log.log')
+
 class DevelopmentConfig(Config):
     DEBUG = True         #LOGGING TO SCREEN, select either one
     FILELOGGING = False  #LOGGING TO 'record.log', select either one
